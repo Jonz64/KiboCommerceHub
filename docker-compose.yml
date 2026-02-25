@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: ./CommerceHub.API
+    ports:
+      - "5001:8080"
+    depends_on:
+      - mongo
+      - rabbit
+    environment:
+      - MONGO_CONN_STRING=mongodb://mongo:27017
+      - RABBITMQ_CONN_STRING=amqp://guest:guest@rabbit:5672
+
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  rabbit:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"      # API connection
+      - "15672:15672"    # Management UI
+
+volumes:
+  mongo_data:

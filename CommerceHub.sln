@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommerceHub.API", "CommerceHub.API\CommerceHub.API.csproj", "{5F686332-5B9E-4AFB-8A94-390E9AA46354}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommerceHub.Tests", "CommerceHub.Tests\CommerceHub.Tests.csproj", "{983DE762-C74F-4DD0-A560-905B4010D91E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5F686332-5B9E-4AFB-8A94-390E9AA46354}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F686332-5B9E-4AFB-8A94-390E9AA46354}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F686332-5B9E-4AFB-8A94-390E9AA46354}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F686332-5B9E-4AFB-8A94-390E9AA46354}.Release|Any CPU.Build.0 = Release|Any CPU
+		{983DE762-C74F-4DD0-A560-905B4010D91E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{983DE762-C74F-4DD0-A560-905B4010D91E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{983DE762-C74F-4DD0-A560-905B4010D91E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{983DE762-C74F-4DD0-A560-905B4010D91E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
