@@ -1,37 +1,68 @@
-
-using System.Net.Http.Headers;
+using CommerceHub.API.Models;
+using CommerceHub.API.Services;
 using Microsoft.AspNetCore.Mvc;
+
+namespace CommerceHub.API.Controllers;
 
 [ApiController]
 [Route("api/products")]
-public class ProductsController:ControllerBase
+public class ProductsController : ControllerBase
 {
-    ProductService s;
+    private readonly ProductService _service;
 
-    public ProductsController(ProductService x)
+    public ProductsController(ProductService service)
     {
-        s=x;
+        _service = service;
     }
 
+    // GET /api/products/{id}
+    [HttpGet("{id}")]
+    public async Task<IActionResult> Get(string id)
+    {
+        var product = await _service.GetAsync(id);
+
+        if (product == null)
+            return NotFound(new { message = $"Product '{id}' not found." });
+
+        return Ok(product);
+    }
+
+    // POST /api/products
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] Product product)
+    {
+        if (product == null)
+            return BadRequest("Product body is required.");
+
+        if (string.IsNullOrWhiteSpace(product.Name))
+            return BadRequest("Product name is required.");
+
+        if (product.Price <= 0)
+            return BadRequest("Price must be greater than zero.");
+
+        if (product.Stock < 0)
+            return BadRequest("Stock cannot be negative.");
+
+        await _service.InsertAsync(product);
+
+        return CreatedAtAction(
+            nameof(Get),
+            new { id = product.Id },
+            product);
+    }
+
+    // PATCH /api/products/{id}/stock?amount=5
     [HttpPatch("{id}/stock")]
-    public IActionResult Patch(
-        string id,
-        int amt)
+    public async Task<IActionResult> UpdateStock(string id, [FromQuery] int amount)
     {
-        if(!s.AdjustStock(id,amt))
-            return BadRequest();
+        if (amount == 0)
+            return BadRequest("Stock adjustment amount cannot be zero.");
 
-        return Ok();
-    }
+        var success = await _service.AdjustStockAsync(id, amount);
 
-   [HttpPost]
-    public IActionResult Create(Product p)
-    {
-        if(p.Id == null || p.Id == "")
-            return BadRequest();
+        if (!success)
+            return Conflict("Stock update failed. Product not found or insufficient stock.");
 
-        s.Insert(p);
-
-        return Ok(p);
+        return NoContent();
     }
 }

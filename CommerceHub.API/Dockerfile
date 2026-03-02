@@ -1,17 +1,11 @@
-# Stage 1: Build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
-
-COPY *.csproj ./
-RUN dotnet restore
-
+WORKDIR /app
 COPY . .
-RUN dotnet publish -c Release -o /app
+RUN dotnet restore
+RUN dotnet publish -c Release -o /out
 
-# Stage 2: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
-COPY --from=build /app .
-
+COPY --from=build /out .
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "CommerceHub.API.dll"]

@@ -1,41 +1,43 @@
-public class ProductRepository
-{
-    private readonly Dictionary<string, Product> db = new();
-    private readonly object _lock = new(); // global lock for simplicity
+using CommerceHub.API.Models;
+using MongoDB.Driver;
 
-    public Product? Get(string id)
+namespace CommerceHub.API.Data;
+
+public class ProductRepository : IProductRepository
+{
+    private readonly IMongoCollection<Product> _collection;
+
+    public ProductRepository(MongoDbContext context)
     {
-        lock (_lock) // safe read
-        {
-            return db.ContainsKey(id) ? db[id] : null;
-        }
+        _collection = context.GetCollection<Product>("Products");
+    }
+
+    public async Task<Product?> GetAsync(string id)
+    {
+        return await _collection
+            .Find(p => p.Id == id)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task InsertAsync(Product product)
+    {
+        await _collection.InsertOneAsync(product);
     }
 
     /// <summary>
-    /// Atomically adjust stock. Returns false if product doesn't exist or stock would go negative.
+    /// Atomically adjust stock using MongoDB atomic update
     /// </summary>
-    public bool UpdateStock(string id, int amt)
+    public async Task<bool> UpdateStockAsync(string id, int amt)
     {
-        lock (_lock) // ensures atomicity
-        {
-            if (!db.ContainsKey(id))
-                return false;
+        var filter = Builders<Product>.Filter.And(
+            Builders<Product>.Filter.Eq(p => p.Id, id),
+            Builders<Product>.Filter.Gte(p => p.Stock, -amt)
+        );
 
-            var p = db[id];
+        var update = Builders<Product>.Update.Inc(p => p.Stock, amt);
 
-            if (p.Stock + amt < 0)
-                return false;
+        var result = await _collection.UpdateOneAsync(filter, update);
 
-            p.Stock += amt;
-            return true;
-        }
-    }
-
-    public void Insert(Product p)
-    {
-        lock (_lock)
-        {
-            db[p.Id] = p;
-        }
+        return result.ModifiedCount > 0;
     }
 }

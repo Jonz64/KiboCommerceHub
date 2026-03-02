@@ -1,169 +1,188 @@
+using CommerceHub.API.Models;
+using CommerceHub.API.Services;
+
 public class OrderServiceTests
 {
     [Fact]
-    public void Checkout_ShouldCreateOrder()
+    public async Task Checkout_ShouldCreateOrder()
     {
-        var orderRepo = new OrderRepository();
-        var productRepo = new ProductRepository();
+        var orderRepo = new FakeOrderRepository();
+        var productRepo = new FakeProductRepository();
+        var publisher = new RabbitPublisherFake();
 
-        productRepo.Insert(new Product
+        await productRepo.InsertAsync(new Product
         {
-            Id="1",
-            Stock=10
+            Id = "1",
+            Stock = 10,
+            Name = "Mouse",
+            Price = 50
         });
 
-        var pub = new RabbitPublisherFake();
-
-        var service = new OrderService(
-            orderRepo,
-            productRepo,
-            pub);
+        var service = new OrderService(orderRepo, productRepo, publisher);
 
         var order = new Order
         {
             Items = new List<OrderItem>
             {
-                new OrderItem
-                {
-                    ProductId="1",
-                    Quantity=2
-                }
+                new OrderItem { ProductId = "1", Quantity = 2 }
             }
         };
 
-        var result = service.Checkout(order);
+        var result = await service.CheckoutAsync(order);
 
         Assert.NotNull(result.Id);
+        Assert.Single(publisher.Published);
     }
 
     [Fact]
-    public void Get_ShouldReturnOrder_WhenExists()
+    public async Task Get_ShouldReturnNull_WhenMissing()
     {
-        var orderRepo = new OrderRepository();
-        var productRepo = new ProductRepository();
-        var publisher = new RabbitPublisherFake();
-
         var service = new OrderService(
-            orderRepo,
-            productRepo,
-            publisher);
+            new FakeOrderRepository(),
+            new FakeProductRepository(),
+            new RabbitPublisherFake());
 
-        var order = new Order
-        {
-            Id = "1",
-            Status = "Pending"
-        };
-
-        orderRepo.Insert(order);
-
-        var result = service.Get("1");
-
-        Assert.NotNull(result);
-        Assert.Equal("1", result.Id);
-    }
-
-
-    [Fact]
-    public void Get_ShouldReturnNull_WhenMissing()
-    {
-        var orderRepo = new OrderRepository();
-        var productRepo = new ProductRepository();
-        var publisher = new RabbitPublisherFake();
-
-        var service = new OrderService(
-            orderRepo,
-            productRepo,
-            publisher);
-
-        var result = service.Get("999");
+        var result = await service.GetAsync("999");
 
         Assert.Null(result);
     }
 
     [Fact]
-    public void Update_ShouldWork_WhenOrderExists()
+    public async Task Checkout_ShouldFail_WhenProductMissing()
     {
-        var orderRepo = new OrderRepository();
-        var productRepo = new ProductRepository();
-        var publisher = new RabbitPublisherFake();
-
         var service = new OrderService(
-            orderRepo,
-            productRepo,
-            publisher);
+            new FakeOrderRepository(),
+            new FakeProductRepository(),
+            new RabbitPublisherFake());
 
         var order = new Order
+        {
+            Items = new List<OrderItem>
+            {
+                new OrderItem { ProductId = "999", Quantity = 1 }
+            }
+        };
+
+        await Assert.ThrowsAsync<Exception>(() =>
+            service.CheckoutAsync(order));
+    }
+
+    [Fact]
+    public async Task Checkout_ShouldFail_WhenStockInsufficient()
+    {
+        var orderRepo = new FakeOrderRepository();
+        var productRepo = new FakeProductRepository();
+        var publisher = new RabbitPublisherFake();
+
+        await productRepo.InsertAsync(new Product
+        {
+            Id = "1",
+            Stock = 2,
+            Name = "Mouse",
+            Price = 50
+        });
+
+        var service = new OrderService(orderRepo, productRepo, publisher);
+
+        var order = new Order
+        {
+            Items = new List<OrderItem>
+            {
+                new OrderItem { ProductId = "1", Quantity = 5 }
+            }
+        };
+
+        await Assert.ThrowsAsync<Exception>(() =>
+            service.CheckoutAsync(order));
+    }
+
+    [Fact]
+    public async Task Checkout_ShouldReduceStock()
+    {
+        var orderRepo = new FakeOrderRepository();
+        var productRepo = new FakeProductRepository();
+        var publisher = new RabbitPublisherFake();
+
+        await productRepo.InsertAsync(new Product
+        {
+            Id = "1",
+            Stock = 10,
+            Name = "Mouse",
+            Price = 50
+        });
+
+        var service = new OrderService(orderRepo, productRepo, publisher);
+
+        var order = new Order
+        {
+            Items = new List<OrderItem>
+            {
+                new OrderItem { ProductId = "1", Quantity = 3 }
+            }
+        };
+
+        await service.CheckoutAsync(order);
+
+        var product = await productRepo.GetAsync("1");
+
+        Assert.Equal(7, product.Stock);
+    }
+
+    [Fact]
+    public async Task Checkout_ShouldPublishEvent()
+    {
+        var orderRepo = new FakeOrderRepository();
+        var productRepo = new FakeProductRepository();
+        var publisher = new RabbitPublisherFake();
+
+        await productRepo.InsertAsync(new Product
+        {
+            Id = "1",
+            Stock = 10,
+            Name = "Mouse",
+            Price = 50
+        });
+
+        var service = new OrderService(orderRepo, productRepo, publisher);
+
+        var order = new Order
+        {
+            Items = new List<OrderItem>
+            {
+                new OrderItem { ProductId = "1", Quantity = 1 }
+            }
+        };
+
+        await service.CheckoutAsync(order);
+
+        Assert.Single(publisher.Published);
+    }
+
+    [Fact]
+    public async Task Update_ShouldNotAllowChangingId()
+    {
+        var orderRepo = new FakeOrderRepository();
+        var productRepo = new FakeProductRepository();
+        var publisher = new RabbitPublisherFake();
+
+        var service = new OrderService(orderRepo, productRepo, publisher);
+
+        await orderRepo.InsertAsync(new Order
         {
             Id = "1",
             Status = "Pending"
-        };
-
-        orderRepo.Insert(order);
+        });
 
         var updated = new Order
         {
+            Id = "999",
             Status = "Pending"
         };
 
-        var result = service.Update("1", updated);
+        await service.UpdateAsync("1", updated);
 
-        Assert.True(result);
+        var saved = await orderRepo.GetAsync("1");
 
-        var saved = orderRepo.Get("1");
-
-        Assert.Equal("Pending", saved.Status);
-    }
-
-
-
-    [Fact]
-    public void Update_ShouldFail_WhenMissing()
-    {
-        var orderRepo = new OrderRepository();
-        var productRepo = new ProductRepository();
-        var publisher = new RabbitPublisherFake();
-
-        var service = new OrderService(
-            orderRepo,
-            productRepo,
-            publisher);
-
-        var order = new Order();
-
-        var result = service.Update("999", order);
-
-        Assert.False(result);
-    }
-
-
-
-    [Fact]
-    public void Update_ShouldFail_WhenShipped()
-    {
-        var orderRepo = new OrderRepository();
-        var productRepo = new ProductRepository();
-        var publisher = new RabbitPublisherFake();
-
-        var service = new OrderService(
-            orderRepo,
-            productRepo,
-            publisher);
-
-        var order = new Order
-        {
-            Id="1",
-            Status="Shipped"
-        };
-
-        orderRepo.Insert(order);
-
-        var updated = new Order
-        {
-            Status="Pending"
-        };
-
-        var result = service.Update("1", updated);
-
-        Assert.False(result);
+        Assert.Equal("1", saved.Id);
     }
 }

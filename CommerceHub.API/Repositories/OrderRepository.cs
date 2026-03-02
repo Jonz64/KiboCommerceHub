@@ -1,30 +1,42 @@
+using CommerceHub.API.Models;
+using MongoDB.Driver;
 
-public class OrderRepository
+namespace CommerceHub.API.Data;
+
+public class OrderRepository : IOrderRepository
 {
-    private Dictionary<string,Order> db = new();
+    private readonly IMongoCollection<Order> _collection;
 
-    public Order? Get(string id)
+    public OrderRepository(MongoDbContext context)
     {
-        return db.ContainsKey(id) ? db[id] : null;
+        _collection = context.GetCollection<Order>("Orders");
     }
 
-    public void Insert(Order o)
+    public async Task<Order?> GetAsync(string id)
     {
-        db[o.Id]=o;
+        return await _collection
+            .Find(o => o.Id == id)
+            .FirstOrDefaultAsync();
     }
 
-    public bool Update(string id, Order o)
+    public async Task InsertAsync(Order order)
     {
-        if (!db.ContainsKey(id))
-            return false;
+        await _collection.InsertOneAsync(order);
+    }
 
-        var existing = db[id];
+    public async Task<bool> UpdateAsync(string id, Order updated)
+    {
+        // Only update if:
+        // 1. Order exists
+        // 2. Status is NOT "Shipped"
 
-        // Block updates if order already shipped
-        if (existing.Status == "Shipped")
-            return false;
+        var filter = Builders<Order>.Filter.And(
+            Builders<Order>.Filter.Eq(o => o.Id, id),
+            Builders<Order>.Filter.Ne(o => o.Status, "Shipped")
+        );
 
-        db[id] = o;
-        return true;
+        var result = await _collection.ReplaceOneAsync(filter, updated);
+
+        return result.ModifiedCount > 0;
     }
 }

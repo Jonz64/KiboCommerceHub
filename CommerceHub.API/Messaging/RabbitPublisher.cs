@@ -28,7 +28,6 @@ public class RabbitPublisher : IRabbitPublisher
         var body=Encoding.UTF8.GetBytes(
             JsonSerializer.Serialize(o));
 
-        Console.WriteLine(body.ToString() + "$##$#$#$#$$##$#$#$#$#$#$#$");
         ch.BasicPublish(
             "orders.exchange",
             "",

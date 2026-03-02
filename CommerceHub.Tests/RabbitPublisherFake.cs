@@ -1,6 +1,6 @@
 public class RabbitPublisherFake : IRabbitPublisher
 {
-    public List<Order> Published = new();
+    public List<Order> Published { get; } = new();
 
     public void Publish(Order order)
     {

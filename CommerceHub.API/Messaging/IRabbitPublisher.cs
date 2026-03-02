@@ -1,4 +1,5 @@
+
 public interface IRabbitPublisher
 {
-    void Publish(Order order);
+    void Publish(Order message);
 }

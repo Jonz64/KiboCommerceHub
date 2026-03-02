@@ -1,25 +1,30 @@
+using CommerceHub.API.Data;
+using CommerceHub.API.Models;
 
-using System.Net.Http.Headers;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
+namespace CommerceHub.API.Services;
 
 public class ProductService
 {
-    ProductRepository repo;
+    private readonly IProductRepository _repo;
 
-    public ProductService(ProductRepository r)
+    public ProductService(IProductRepository repo)
     {
-        repo=r;
+        _repo = repo;
     }
 
-    public bool AdjustStock(string id,int amt)
+    public async Task<Product?> GetAsync(string id)
     {
-        return repo.UpdateStock(id,amt);
+        return await _repo.GetAsync(id);
     }
 
-    public void Insert(Product p)
+    public async Task<bool> AdjustStockAsync(string id, int amt)
+    {
+        return await _repo.UpdateStockAsync(id, amt);
+    }
+
+    public async Task InsertAsync(Product p)
     {
         p.Id = Guid.NewGuid().ToString();
-        repo.Insert(p);
+        await _repo.InsertAsync(p);
     }
 }

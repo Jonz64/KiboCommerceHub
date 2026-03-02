@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/jonz64/Documents/Kibo/CommerceHub_FAANG/CommerceHub.Tests/CommerceHub.Tests.csproj": {}
+    "/Users/jonz64/Documents/Kibo/CommerceHub/CommerceHub.Tests/CommerceHub.Tests.csproj": {}
   },
   "projects": {
-    "/Users/jonz64/Documents/Kibo/CommerceHub_FAANG/CommerceHub.API/CommerceHub.API.csproj": {
+    "/Users/jonz64/Documents/Kibo/CommerceHub/CommerceHub.API/CommerceHub.API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/jonz64/Documents/Kibo/CommerceHub_FAANG/CommerceHub.API/CommerceHub.API.csproj",
+        "projectUniqueName": "/Users/jonz64/Documents/Kibo/CommerceHub/CommerceHub.API/CommerceHub.API.csproj",
         "projectName": "CommerceHub.API",
-        "projectPath": "/Users/jonz64/Documents/Kibo/CommerceHub_FAANG/CommerceHub.API/CommerceHub.API.csproj",
+        "projectPath": "/Users/jonz64/Documents/Kibo/CommerceHub/CommerceHub.API/CommerceHub.API.csproj",
         "packagesPath": "/Users/jonz64/.nuget/packages/",
-        "outputPath": "/Users/jonz64/Documents/Kibo/CommerceHub_FAANG/CommerceHub.API/obj/",
+        "outputPath": "/Users/jonz64/Documents/Kibo/CommerceHub/CommerceHub.API/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/jonz64/.nuget/NuGet/NuGet.Config"
@@ -45,7 +45,7 @@
           "dependencies": {
             "MongoDB.Driver": {
               "target": "Package",
-              "version": "[2.25.0, )"
+              "version": "[3.6.0, )"
             },
             "RabbitMQ.Client": {
               "target": "Package",
@@ -79,14 +79,14 @@
         }
       }
     },
-    "/Users/jonz64/Documents/Kibo/CommerceHub_FAANG/CommerceHub.Tests/CommerceHub.Tests.csproj": {
+    "/Users/jonz64/Documents/Kibo/CommerceHub/CommerceHub.Tests/CommerceHub.Tests.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/jonz64/Documents/Kibo/CommerceHub_FAANG/CommerceHub.Tests/CommerceHub.Tests.csproj",
+        "projectUniqueName": "/Users/jonz64/Documents/Kibo/CommerceHub/CommerceHub.Tests/CommerceHub.Tests.csproj",
         "projectName": "CommerceHub.Tests",
-        "projectPath": "/Users/jonz64/Documents/Kibo/CommerceHub_FAANG/CommerceHub.Tests/CommerceHub.Tests.csproj",
+        "projectPath": "/Users/jonz64/Documents/Kibo/CommerceHub/CommerceHub.Tests/CommerceHub.Tests.csproj",
         "packagesPath": "/Users/jonz64/.nuget/packages/",
-        "outputPath": "/Users/jonz64/Documents/Kibo/CommerceHub_FAANG/CommerceHub.Tests/obj/",
+        "outputPath": "/Users/jonz64/Documents/Kibo/CommerceHub/CommerceHub.Tests/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/jonz64/.nuget/NuGet/NuGet.Config"
@@ -101,8 +101,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "/Users/jonz64/Documents/Kibo/CommerceHub_FAANG/CommerceHub.API/CommerceHub.API.csproj": {
-                "projectPath": "/Users/jonz64/Documents/Kibo/CommerceHub_FAANG/CommerceHub.API/CommerceHub.API.csproj"
+              "/Users/jonz64/Documents/Kibo/CommerceHub/CommerceHub.API/CommerceHub.API.csproj": {
+                "projectPath": "/Users/jonz64/Documents/Kibo/CommerceHub/CommerceHub.API/CommerceHub.API.csproj"
               }
             }
           }

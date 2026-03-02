@@ -1,56 +1,61 @@
+using CommerceHub.API.Data;
+using CommerceHub.API.Models;
+
+namespace CommerceHub.API.Services;
 
 public class OrderService
 {
-    OrderRepository orders;
-    ProductRepository products;
-    IRabbitPublisher pub;
+    private readonly IOrderRepository _orders;
+    private readonly IProductRepository _products;
+    private readonly IRabbitPublisher _publisher;
 
     public OrderService(
-        OrderRepository o,
-        ProductRepository p,
-        IRabbitPublisher r)
+        IOrderRepository orders,
+        IProductRepository products,
+        IRabbitPublisher publisher)
     {
-        orders=o;
-        products=p;
-        pub=r;
+        _orders = orders;
+        _products = products;
+        _publisher = publisher;
     }
 
-    public Order Checkout(Order o)
+    public async Task<Order> CheckoutAsync(Order o)
     {
-        foreach(var i in o.Items)
+        // Validate quantities
+        foreach (var item in o.Items)
         {
-            if(i.Quantity<=0)
-                throw new Exception();
+            if (item.Quantity <= 0)
+                throw new Exception("Invalid quantity.");
         }
 
-        foreach(var i in o.Items)
+        // Atomically decrement stock
+        foreach (var item in o.Items)
         {
-            if(!products.UpdateStock(
-                i.ProductId,
-                -i.Quantity))
-                throw new Exception();
+            var success = await _products.UpdateStockAsync(
+                item.ProductId,
+                -item.Quantity);
+
+            if (!success)
+                throw new Exception("Insufficient stock.");
         }
 
-        o.Id=Guid.NewGuid().ToString();
+        o.Id = Guid.NewGuid().ToString();
 
-        orders.Insert(o);
+        await _orders.InsertAsync(o);
 
-        pub.Publish(o);
+        // Publish event (can remain sync or async depending on your implementation)
+        _publisher.Publish(o);
 
         return o;
     }
 
-    // Get order by ID (GET /api/orders/{id})
-    public Order? Get(string id)
+    public async Task<Order?> GetAsync(string id)
     {
-        Order order = orders.Get(id);
-
-        return order;
+        return await _orders.GetAsync(id);
     }
 
-    // PUT /api/orders/{id}
-    public bool Update(string id, Order o)
+    public async Task<bool> UpdateAsync(string id, Order o)
     {
-        return orders.Update(id, o);
+        return await _orders.UpdateAsync(id, o);
     }
 }

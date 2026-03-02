@@ -1,15 +1,24 @@
+using CommerceHub.API.Data;
+using CommerceHub.API.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services
+builder.Services.Configure<MongoDbSettings>(
+builder.Configuration.GetSection("MongoDbSettings"));
+
+builder.Services.AddSingleton<MongoDbContext>();
+
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
+builder.Services.AddScoped<ProductService>();
+builder.Services.AddScoped<OrderService>();
+
+builder.Services.AddSingleton<IRabbitPublisher, RabbitPublisher>();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-builder.Services.AddSingleton<OrderRepository>();
-builder.Services.AddSingleton<ProductRepository>();
-builder.Services.AddSingleton<IRabbitPublisher, RabbitPublisher>();
-builder.Services.AddSingleton<OrderService>();
-builder.Services.AddSingleton<ProductService>();
 
 var app = builder.Build();
 
